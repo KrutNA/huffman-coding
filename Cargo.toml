@@ -1,0 +1,7 @@
+[package]
+name = "huffman-coding"
+version = "0.1.0"
+authors = ["KrutNA <krutna@pm.me>"]
+edition = "2018"
+
+[dependencies]
