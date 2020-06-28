@@ -4,4 +4,9 @@ version = "0.1.0"
 authors = ["KrutNA <krutna@pm.me>"]
 edition = "2018"
 
+[features]
+default = []
+debug   = [ "ptree" ]
+
 [dependencies]
+ptree   = { version = "0.2.1", optional = true }

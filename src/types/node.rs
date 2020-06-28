@@ -2,8 +2,8 @@ use std::cmp::Ordering;
 
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct Node {
-    pub left:     Option<Element>,
-    pub right:    Option<Element>,
+    pub left:     Element,
+    pub right:    Element,
     pub priority: u64,
 }
 
@@ -12,6 +12,7 @@ pub struct Node {
 pub enum Element {
     Node(Box<Node>),
     Data(Data),
+    None,
 }
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
@@ -27,7 +28,7 @@ pub trait Increment {
 impl Data {
     pub fn new(data: u8) -> Self {
 	Data { data,
-	       priority: u64::default() }
+	       priority: 1 }
     }
 }
 
@@ -40,17 +41,19 @@ impl Increment for Data {
 impl Node {
     pub fn new() -> Self {
 	Self { priority: u64::default(),
-	       left: None,
-	       right: None }
+	       left: Element::None,
+	       right: Element::None }
     }
 
     pub fn left(&mut self, element: &mut Element) -> &mut Self {
-	self.left = Some(element.to_owned());
+	self.priority += element.priority();
+	self.left = element.to_owned();
 	self
     }
 
     pub fn right(&mut self, element: &mut Element) -> &mut Self {
-	self.right = Some(element.to_owned());
+	self.priority += element.priority();
+	self.right = element.to_owned();
 	self
     }
 }
@@ -61,22 +64,64 @@ impl Increment for Node {
     }
 }
 
+impl Element {
+    pub fn priority(&mut self) -> u64 {
+	match self {
+	    Self::Data(x) => x.priority,
+	    Self::Node(x) => x.priority,
+	    Self::None    => 0,
+	}
+    }
+}
+
 impl Ord for Element {
     fn cmp(&self, other: &Self) -> Ordering {
 	let self_data = match self {
 	    Self::Node(x) => x.priority,
 	    Self::Data(x) => x.priority,
+	    Self::None    => 0,
 	};
 	let other_data = match other {
 	    Self::Node(x) => x.priority,
 	    Self::Data(x) => x.priority,
+	    Self::None    => 0,
 	};
-	self_data.cmp(&other_data)
+	other_data.cmp(&self_data)
     }
 }
 
 impl PartialOrd for Element {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
 	Some(self.cmp(other))
+    }
+}
+
+#[cfg(feature = "ptree")]
+impl ptree::TreeItem for Element {
+    type Child = Self;
+
+    fn write_self<W: std::io::Write>(
+	&self, f: &mut W,
+	style: &ptree::Style
+    )
+	-> std::io::Result<()>
+    {
+	match self {
+	    Element::Data(x) => write!(f, "[{}: {}]",
+				       style.paint(x.data as char),
+				       style.paint(x.priority),),
+	    Element::Node(x) => write!(f, "{}",
+				       style.paint(x.priority)),
+	    _ => Ok(()),
+	}
+    }
+
+    fn children(&self) -> std::borrow::Cow<[Self::Child]> {
+	let v = if let Element::Node(x) = self {
+	    vec![x.left.clone(), x.right.clone()]
+	} else {
+	    Vec::new()
+	};
+	std::borrow::Cow::from(v)
     }
 }

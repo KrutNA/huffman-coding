@@ -1,11 +1,5 @@
-use std::collections::BinaryHeap;
 use crate::types::node::*;
-use std::fs::File;
-use std::io::Read;
-use std::{
-    rc::Rc,
-    cell::RefCell,
-};
+use std::collections::BinaryHeap;
 
 pub fn generate_from_data(data: &Vec<u8>) -> BinaryHeap<Element> {
     let mut heap = Vec::new();
@@ -19,5 +13,6 @@ pub fn generate_from_data(data: &Vec<u8>) -> BinaryHeap<Element> {
 	    heap.push(Element::Data(Data::new(byte)));
 	}
     }
+
     heap.into()
 }
