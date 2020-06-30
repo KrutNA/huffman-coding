@@ -4,7 +4,7 @@ use std::cmp::Ordering;
 pub struct Node {
     pub left:     Element,
     pub right:    Element,
-    pub priority: u64,
+    pub priority: u32,
 }
 
 
@@ -18,19 +18,19 @@ pub enum Element {
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub struct Data {
     pub data:     u8,
-    pub priority: u64,
+    pub priority: u32,
 }
 
 pub trait Increment {
     fn inc(&mut self);
 }
 
-impl Data {
-    pub fn new(data: u8) -> Self {
-	Data { data,
-	       priority: 1 }
-    }
-}
+// impl Data {
+//     pub fn new(data: u8) -> Self {
+// 	Data { data,
+// 	       priority: 1 }
+//     }
+// }
 
 impl Increment for Data {
     fn inc(&mut self) {
@@ -40,7 +40,7 @@ impl Increment for Data {
 
 impl Node {
     pub fn new() -> Self {
-	Self { priority: u64::default(),
+	Self { priority: u32::default(),
 	       left: Element::None,
 	       right: Element::None }
     }
@@ -65,7 +65,11 @@ impl Increment for Node {
 }
 
 impl Element {
-    pub fn priority(&mut self) -> u64 {
+    pub fn new_with_priority(data: u8, priority: u32) -> Self {
+	Self::Data(Data { data, priority })
+    }
+
+    pub fn priority(&mut self) -> u32 {
 	match self {
 	    Self::Data(x) => x.priority,
 	    Self::Node(x) => x.priority,
