@@ -1,7 +1,12 @@
 use crate::convert;
 use crate::tree;
 use crate::queue;
-use crate::types::{ui::CliArgs, data::Data, BYTE_SIZE_U8};
+use crate::types::{
+    ui::CliArgs,
+    data::Data,
+    node::Element,
+    BYTE_SIZE_U8
+};
 
 #[cfg(feature = "time")]
 use std::time::SystemTime;
@@ -11,18 +16,18 @@ use std::{fs::File,
 
 const BYTE_COUNT: usize = 256;
 
-pub fn execute(buffer: &mut Vec<u8>, args: &CliArgs) {
+pub fn encode(buffer: &mut Vec<u8>, args: &CliArgs) {
     let heap_buffer = &mut [0; BYTE_COUNT];
     
     let mut file   = File::open(&args.input).unwrap();
-    let mut _readed = 0usize;
+    let mut readed = 0u64;
     
     #[cfg(feature = "time")]
     let time = SystemTime::now();
     
     while let Ok(len) = file.read(buffer) {
 	if len == 0 { break; }
-	_readed += len;
+	readed += len as u64;
 	queue::update_with_data(heap_buffer, &buffer[..len]);
     }
     
@@ -49,6 +54,9 @@ pub fn execute(buffer: &mut Vec<u8>, args: &CliArgs) {
     let mut last   = 0;
     let mut length = 0;
     let mut data   = Data::default();
+    
+    let _ = ofile.write(encode_tree(&root).as_slice());
+    let _ = ofile.write(&readed.to_ne_bytes());
 
     while let Ok(len) = ifile.read(buffer) {
 	if len == 0 { break; }
@@ -78,7 +86,7 @@ pub fn execute(buffer: &mut Vec<u8>, args: &CliArgs) {
     }
     if length % BYTE_SIZE_U8 != 0 {
 	_writed += ofile.write(
-	    &[*data.data.last().unwrap() << (BYTE_SIZE_U8 - length)]
+	    &[*data.data.last().unwrap()]
 	).unwrap()
     }
     
@@ -90,6 +98,24 @@ pub fn execute(buffer: &mut Vec<u8>, args: &CliArgs) {
 	#[cfg(feature = "ptree")]
 	ptree::print_tree(&root).unwrap();
 	println!("{:#?}", table);
-	println!("r: {} / w: {}", _readed, _writed);
+	println!("r: {} / w: {}", readed, _writed);
+    }
+}
+
+fn encode_tree(tree: &Element) -> Vec<u8> {
+    let mut vec = Vec::new();
+    encode_node(&mut vec, &tree);
+    vec
+}
+
+fn encode_node(vec: &mut Vec<u8>, node: &Element) {
+    match node {
+	Element::Data(x) => vec.push(x.data),
+	Element::Node(x) => {
+	    vec.append(&mut vec![b'\0', b'\0']);
+	    encode_node(vec, &x.left);
+	    encode_node(vec, &x.right);
+	},
+	Element::None    => (),
     }
 }

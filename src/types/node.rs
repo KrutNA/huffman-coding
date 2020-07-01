@@ -25,12 +25,12 @@ pub trait Increment {
     fn inc(&mut self);
 }
 
-// impl Data {
-//     pub fn new(data: u8) -> Self {
-// 	Data { data,
-// 	       priority: 1 }
-//     }
-// }
+impl Data {
+    pub fn new(data: u8) -> Data {
+	Data { data,
+	       priority: 0 }
+    }
+}
 
 impl Increment for Data {
     fn inc(&mut self) {
