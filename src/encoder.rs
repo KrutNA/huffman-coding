@@ -56,7 +56,7 @@ pub fn encode(buffer: &mut Vec<u8>, args: &CliArgs) {
     let mut data   = Data::default();
     
     let _ = ofile.write(encode_tree(&root).as_slice());
-    let _ = ofile.write(&readed.to_ne_bytes());
+    let _ = ofile.write(&readed.to_le_bytes());
 
     while let Ok(len) = ifile.read(buffer) {
 	if len == 0 { break; }

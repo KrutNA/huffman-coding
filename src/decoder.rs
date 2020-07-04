@@ -40,7 +40,7 @@ pub fn decode(buffer: &mut Vec<u8>, args: &CliArgs) {
 	let &val   = iter.next().expect("Unexpected EOF");
 	vec.push(val);
     }
-    let count      = u64::from_ne_bytes(vec.iter().map(|&x| x)
+    let count      = u64::from_le_bytes(vec.iter().map(|&x| x)
 					.collect::<Vec<_>>().as_slice()
 					.try_into().unwrap());
 
